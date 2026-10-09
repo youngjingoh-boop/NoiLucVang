@@ -284,7 +284,11 @@ music_ducked = music * (gain * bed)[:, None]
 sf.write(ROOT + "music.wav", music.astype(np.float32), SR, subtype="FLOAT")
 sf.write(ROOT + "sfx.wav", sfx.astype(np.float32), SR, subtype="FLOAT")
 
-M_LEVEL, S_LEVEL = 0.25, 0.45  # music ≈ -28 LUFS unducked, sfx peaks ≈ -10 dBFS (measured)
+# Trims (measured): music 0.25 ≈ -28 LUFS unducked; sfx 0.45 ≈ subtle, 0.85 ≈ +5.5 dB "a bit louder".
+# Override per version, e.g. no-music cut:  MUSIC=0 SFX=0.85 python scripts/zocker-sound.py
+import os
+M_LEVEL = float(os.environ.get("MUSIC", 0.25))
+S_LEVEL = float(os.environ.get("SFX", 0.45))
 mix = vo + music_ducked * M_LEVEL + sfx * S_LEVEL
 sf.write(ROOT + "mix_raw.wav", mix.astype(np.float32), SR, subtype="FLOAT")
 print("ok", mix.shape, "peak", float(np.abs(mix).max()))
