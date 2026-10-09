@@ -6,7 +6,6 @@ import {
   Img,
   OffthreadVideo,
   Sequence,
-  interpolate,
   staticFile,
   useVideoConfig,
 } from "remotion";
@@ -21,7 +20,8 @@ import captions from "./captions.json";
 
 export const zockerSchema = z.object({
   src: z.string(),
-  // Mastered soundtrack (levelled VO, -14 LUFS). Empty string = use the video's own audio.
+  // Final soundtrack: levelled speech + original music bed + sfx, -14 LUFS, full length incl. the end-card hold
+  // (scripts/zocker-sound.py → scripts/zocker-master.sh). Empty string = use the video's own audio.
   audio: z.string(),
   showCaptions: z.boolean(),
   showGrain: z.boolean(),
@@ -33,7 +33,7 @@ type Props = z.infer<typeof zockerSchema>;
 
 export const zockerDefaults: Props = {
   src: "zocker/source.mp4",
-  audio: "zocker/mastered.wav",
+  audio: "zocker/mix.wav",
   tail: "zocker/lastframe.png",
   showCaptions: true,
   showGrain: true,
@@ -53,7 +53,7 @@ const DesignSpace: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const fill: React.CSSProperties = { width: "100%", height: "100%", objectFit: "cover" };
 
 export const ZockerEdit: React.FC<Props> = ({ src, audio, tail, showCaptions, showGrain, sourceFrames }) => {
-  const { durationInFrames, fps } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
   const n = sourceFrames ?? durationInFrames;
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
@@ -67,11 +67,7 @@ export const ZockerEdit: React.FC<Props> = ({ src, audio, tail, showCaptions, sh
         </Sequence>
       </Camera>
       {audio ? (
-        <Audio
-          src={staticFile(audio)}
-          // gentle 1 s fade at the very end of the source so the hold lands in silence, not a cut-off
-          volume={(f) => interpolate(f, [n - fps, n], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
-        />
+        <Audio src={staticFile(audio)} />
       ) : null}
 
       {sceneBridges.map((at) => (

@@ -42,7 +42,10 @@ Finishing pass on an already-cut video: 3D camera moves, word-synced captions, i
 4. Audio master → `public/zocker/mastered.wav`: court/VO section (from 76.2 s) +14 dB with a 0.5 s ramp, 70 Hz high-pass,
    light compression, two-pass loudnorm to −14 LUFS / −1.5 dBTP.
 5. End-card hold: `ffmpeg -sseof -0.1 -i public/zocker/source.mp4 -update 1 -frames:v 1 public/zocker/lastframe.png`
-6. `npm run studio` to review → `npm run render:zocker`.
+6. Music + sound: `python scripts/zocker-sound.py && scripts/zocker-master.sh` → `public/zocker/mix.wav`
+   (original synthesized score, royalty-free: lo-fi Rhodes bed for the couch, piano/pad for court + VO, comedic drop on
+   "You betrayed me"; subtle sfx on hook, transitions, gift items, 339 counter, ticket, lotus, end card; music ducks under speech).
+7. `npm run studio` to review → `npm run render:zocker`.
 
 **Rules baked in** (`src/zocker/config.ts` → `MOTION`)
 - Every zoom, camera move and transition takes ≥ 1.5 s (camera moves 2 s, light-leak bridges 1.8 s).
