@@ -2,3 +2,7 @@ node_modules
 out
 .DS_Store
 *.log
+# Source footage stays local (large binaries)
+public/zocker/*.mp4
+public/zocker/*.mov
+public/zocker/*.wav
