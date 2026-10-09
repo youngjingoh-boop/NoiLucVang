@@ -6,3 +6,6 @@ out
 public/zocker/*.mp4
 public/zocker/*.mov
 public/zocker/*.wav
+public/zocker/lastframe.png
+public/zocker/*.MOV
+public/zocker/*.png

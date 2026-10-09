@@ -6,7 +6,19 @@ export type Word = { text: string; start: number; end: number };
 export type Line = { start: number; end: number; style?: "talk" | "en" | "vo"; sub?: string; words: Word[] };
 
 const norm = (s: string) => s.toLowerCase().replace(/[.,!?…"“”()]/g, "");
-const emphasisWords = new Set(emphasis.flatMap((p) => p.split(/\s+/).map(norm)));
+const phrases = emphasis.map((p) => p.split(/\s+/).map(norm));
+
+// Indices of words that belong to a complete emphasis phrase (so "áo" alone never lights up).
+const hotIndices = (words: Word[]) => {
+  const hot = new Set<number>();
+  const w = words.map((x) => norm(x.text));
+  for (const p of phrases) {
+    for (let i = 0; i + p.length <= w.length; i++) {
+      if (p.every((t, j) => w[i + j] === t)) p.forEach((_, j) => hot.add(i + j));
+    }
+  }
+  return hot;
+};
 
 // Captions sit in TikTok's safe zone: above the bottom UI, clear of the right-hand buttons.
 export const Captions: React.FC<{ lines: Line[]; cinematicFrom?: number }> = ({ lines }) => {
@@ -20,11 +32,12 @@ export const Captions: React.FC<{ lines: Line[]; cinematicFrom?: number }> = ({ 
   const vo = line.style === "vo";
   const en = line.style === "en";
   const age = s - line.start;
+  const hotSet = hotIndices(line.words);
   // Phrase entrance: a short opacity/rise synced to speech (text appearing, not a zoom or transition).
   const enter = interpolate(age, [0, 0.22], [0, 1], { extrapolateRight: "clamp", easing: ease.out });
 
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: vo ? 330 : 470 }}>
+    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: vo ? 300 : 400 }}>
       <div
         style={{
           maxWidth: 860,
@@ -42,14 +55,14 @@ export const Captions: React.FC<{ lines: Line[]; cinematicFrom?: number }> = ({ 
             lineHeight: 1.22,
             letterSpacing: vo ? 0 : -0.5,
             color: palette.white,
-            textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.55)",
+            textShadow: vo ? "0 2px 6px rgba(0,0,0,0.7), 0 8px 28px rgba(0,0,0,0.6)" : "0 3px 0 rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.55)",
             WebkitTextStroke: vo ? undefined : "1.5px rgba(0,0,0,0.25)",
           }}
         >
           {line.words.map((w, i) => {
             const spoken = s >= w.start;
             const active = s >= w.start && s < w.end + 0.08;
-            const hot = emphasisWords.has(norm(w.text));
+            const hot = hotSet.has(i);
             const color = hot ? (vo ? palette.blush : palette.pink) : palette.white;
             return (
               <span
@@ -70,12 +83,15 @@ export const Captions: React.FC<{ lines: Line[]; cinematicFrom?: number }> = ({ 
         {en && line.sub ? (
           <div
             style={{
+              display: "inline-block",
               marginTop: 14,
+              padding: "6px 18px 8px",
+              borderRadius: 12,
+              background: "rgba(20,6,14,0.5)",
               fontFamily: serif,
               fontStyle: "italic",
-              fontSize: 36,
+              fontSize: 38,
               color: palette.blush,
-              textShadow: "0 4px 18px rgba(0,0,0,0.6)",
             }}
           >
             {line.sub}

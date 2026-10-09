@@ -34,10 +34,15 @@ In a sandbox without Remotion's downloaded browser, set
 Finishing pass on an already-cut video: 3D camera moves, word-synced captions, info graphics and an end card.
 
 **Workflow**
-1. Put the edited video at `public/zocker/source.mp4` (or `.mov`; then set the `src` prop in Studio). Duration, size and fps come from the file.
-2. `scripts/detect-cuts.sh public/zocker/source.mp4`: lists the existing cuts. Line `cameraMoves`, `sceneBridges` and `overlays` up with them in `src/zocker/edit.ts`.
-3. Captions: `src/zocker/captions.json` is currently a **draft with estimated timing**. Transcribe the footage, then run `node scripts/import-transcript.mjs transcript.json` and tag the English lines (`style: "en"` + `sub`) and the VO lines (`style: "vo"`).
-4. `npm run studio` to review, then `npm run render:zocker`.
+1. Source: the edited cut (HEVC .MOV) → `public/zocker/source.mp4` (H.264 CRF 12, CFR 30 fps) — kept out of git.
+   `ffmpeg -i source.MOV -vf fps=30 -c:v libx264 -preset slow -crf 12 -pix_fmt yuv420p -c:a aac -b:a 320k public/zocker/source.mp4`
+2. Cuts: `scripts/detect-cuts.sh public/zocker/source.mp4` → timings in `src/zocker/edit.ts`.
+3. Captions: Whisper large-v3 word timestamps (`data/zocker-transcript.whisper.json`) → `node scripts/zocker-captions.mjs`
+   (spelling fixes pinned to timestamps, bilingual subs, phrase-aware line breaks) → `src/zocker/captions.json`.
+4. Audio master → `public/zocker/mastered.wav`: court/VO section (from 76.2 s) +14 dB with a 0.5 s ramp, 70 Hz high-pass,
+   light compression, two-pass loudnorm to −14 LUFS / −1.5 dBTP.
+5. End-card hold: `ffmpeg -sseof -0.1 -i public/zocker/source.mp4 -update 1 -frames:v 1 public/zocker/lastframe.png`
+6. `npm run studio` to review → `npm run render:zocker`.
 
 **Rules baked in** (`src/zocker/config.ts` → `MOTION`)
 - Every zoom, camera move and transition takes ≥ 1.5 s (camera moves 2 s, light-leak bridges 1.8 s).

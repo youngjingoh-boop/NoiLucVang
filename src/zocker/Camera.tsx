@@ -11,6 +11,7 @@ const poses: Record<CameraKind, Pose> = {
   pushIn: { scale: 1.07, rotX: 0, rotY: 0, x: 0, y: -0.5 },
   pushInLeft: { scale: 1.08, rotX: 0.6, rotY: 2.6, x: 1.6, y: -0.4 },
   pushInRight: { scale: 1.08, rotX: 0.6, rotY: -2.6, x: -1.6, y: -0.4 },
+  pushInTopLeft: { scale: 1.07, rotX: -1.2, rotY: 2.2, x: 1.8, y: 1.8 },
   tiltUp: { scale: 1.05, rotX: 2.4, rotY: 0, x: 0, y: 0.6 },
   orbitLeft: { scale: 1.05, rotX: 0.4, rotY: 3.0, x: 1.2, y: 0 },
   orbitRight: { scale: 1.05, rotX: 0.4, rotY: -3.0, x: -1.2, y: 0 },
